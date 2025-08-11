@@ -438,19 +438,86 @@ function renderLeaderboard() {
 
 // Game Logic Functions
 function startGame() {
-    // Get game location
-    const location = prompt('📍 Where are you playing? (optional)') || 'Unknown location';
-    gameState.gameLocation = location;
-    gameState.gameStartTime = Date.now();
-    
-    gameState.scores = {};
-    gameState.currentPlayerIndex = 0;
-    gameState.currentRound = 1;
-    gameState.selectedPlayers.forEach(player => {
-        gameState.scores[player] = {};
+    // Get device location
+    getDeviceLocation().then(location => {
+        gameState.gameLocation = location;
+        gameState.gameStartTime = Date.now();
+        
+        gameState.scores = {};
+        gameState.currentPlayerIndex = 0;
+        gameState.currentRound = 1;
+        gameState.selectedPlayers.forEach(player => {
+            gameState.scores[player] = {};
+        });
+        showScreen('gameScreen');
+        updateGameDisplay();
+    }).catch(error => {
+        console.log('Location not available:', error);
+        gameState.gameLocation = 'Unknown location';
+        gameState.gameStartTime = Date.now();
+        
+        gameState.scores = {};
+        gameState.currentPlayerIndex = 0;
+        gameState.currentRound = 1;
+        gameState.selectedPlayers.forEach(player => {
+            gameState.scores[player] = {};
+        });
+        showScreen('gameScreen');
+        updateGameDisplay();
     });
-    showScreen('gameScreen');
-    updateGameDisplay();
+}
+
+// Get device location
+function getDeviceLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                // Use reverse geocoding to get location name
+                getLocationName(latitude, longitude)
+                    .then(locationName => resolve(locationName))
+                    .catch(() => resolve(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`));
+            },
+            error => {
+                console.log('Location error:', error);
+                reject(error);
+            },
+            {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
+    });
+}
+
+// Get location name from coordinates
+function getLocationName(latitude, longitude) {
+    return new Promise((resolve, reject) => {
+        // Use a free reverse geocoding service
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.display_name) {
+                    // Extract city and country
+                    const parts = data.display_name.split(', ');
+                    const city = parts[0];
+                    const country = parts[parts.length - 1];
+                    resolve(`${city}, ${country}`);
+                } else {
+                    reject(new Error('No location name found'));
+                }
+            })
+            .catch(error => {
+                console.log('Geocoding error:', error);
+                reject(error);
+            });
+    });
 }
 
 function endGame() {
