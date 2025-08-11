@@ -50,9 +50,32 @@ body {
     max-width: 500px;
     margin: 0 auto;
     min-height: 100vh;
-    background: #ffffff;
+    background: var(--bg-primary);
     position: relative;
     box-shadow: 0 0 0 1px #e5e5e5;
+    overflow: hidden;
+}
+
+.background-logo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.bg-logo {
+    width: 300px;
+    height: 300px;
+    opacity: 0.03;
+    filter: grayscale(100%);
+    transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] .bg-logo {
+    opacity: 0.05;
+    filter: grayscale(100%) invert(1);
 }
 
 /* Header with Logo */
@@ -69,7 +92,7 @@ body {
 
 .theme-toggle {
     background: transparent;
-    border: 2px solid var(--bg-primary);
+    border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -78,12 +101,11 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .theme-toggle:hover {
-    background: var(--bg-primary);
-    color: var(--accent-color);
+    background: var(--shadow-color);
     transform: scale(1.1);
 }
 
@@ -103,10 +125,10 @@ body {
 }
 
 .app-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    border: 2px solid #ffffff;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: none;
 }
 
 .title-container h1 {
