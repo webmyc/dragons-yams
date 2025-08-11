@@ -1,51 +1,57 @@
-# 🎲 Yams Scorekeeper
+# 🎲 Yams Scorekeeper v1.0 - Digital Score Sheet
 
-A super-friendly and cute mobile-friendly web app for keeping score when playing Yams/Yahtzee with real dice!
+**A beautiful, mobile-first web app for keeping score during Yams/Yahtzee games with real dice.**
 
 ## ✨ Features
 
-- **🎮 Simple Scorekeeping**: Just tap to add scores - no complex dice rolling mechanics
-- **👥 Player Management**: Default players (Ioana, Iancu, Dana, Mihai) with ability to add new players
-- **📱 Mobile-First Design**: Optimized for mobile devices with touch-friendly interface
-- **🏆 Leaderboard**: Track all-time scores and game statistics
-- **📚 Game History**: Save and review past games
-- **💾 Local Storage**: All data saved locally in your browser
-- **🎨 Cute Design**: Beautiful gradients and smooth animations
+- **📱 Mobile-optimized** - Perfect for playing on phones and tablets
+- **🎨 Beautiful design** - Sepia vintage paper theme with green accents, works great in bright sunlight
+- **🌙 Dark/Light mode** - Toggle between themes for any lighting condition
+- **👥 Player management** - Select from default players (Ioana, Iancu, Dana, Mihai) or add new ones
+- **🎯 Complete scoring** - All Yams categories including Romanian terms (Minorante/Majorante)
+- **☁️ Cloud sync** - Game history automatically syncs across all devices via Firebase
+- **📍 Location tracking** - Automatically captures where games were played
+- **📈 Leaderboard** - Track player performance over time
+- **⚡ Simple scoring** - Easy category selection and point entry
+- **💾 Offline support** - Works without internet, syncs when connected
 
 ## 🚀 Live Demo
 
-Visit the live app: [https://webmyc.github.io/dragons-yams/](https://webmyc.github.io/dragons-yams/)
+Visit the live app: [https://yams.respira.live/](https://yams.respira.live/)
+
+## 🛠️ Technical Highlights
+
+- **Progressive Web App (PWA)** - Add to home screen on iOS/Android
+- **Real-time Firebase Firestore integration** - Automatic cloud synchronization
+- **Geolocation API** - Automatic location detection for game history
+- **Responsive design** - Optimized for mobile devices
+- **Local storage fallback** - Works offline, syncs when connected
+- **Pure HTML/CSS/JavaScript** - No frameworks, fast loading
 
 ## 🎯 How to Use
 
-1. **Start a New Game**: Select which players are participating
-2. **Add Scores**: Tap "Add Score" when it's a player's turn
-3. **Quick Entry**: Use the quick score buttons (50, 100, 150, 200) or type custom scores
-4. **Track Progress**: See current scores and who's winning
-5. **End Game**: When finished, the winner is announced and results are saved
-
-## 🛠️ Technical Details
-
-- **Pure HTML/CSS/JavaScript**: No frameworks, fast loading
-- **Responsive Design**: Works on all screen sizes
-- **Progressive Web App**: Can be installed on mobile devices
-- **Local Storage**: No server required, all data stays on your device
-- **Touch Optimized**: Haptic feedback and touch-friendly buttons
+1. **Start a New Game**: Select which players are participating using pill-style buttons
+2. **Enter Scores**: Choose a category from the dropdown and enter points
+3. **Track Progress**: See current scores and used categories in real-time
+4. **End Game**: When finished, results are saved to history with location and duration
+5. **View History**: Access past games and leaderboard statistics
 
 ## 🎨 Design Features
 
-- **Gradient Backgrounds**: Beautiful purple and orange gradients
-- **Smooth Animations**: Fade-in effects and hover animations
-- **Emoji Icons**: Fun and friendly interface with emoji indicators
-- **Card-based Layout**: Clean, modern card design
-- **Mobile Navigation**: Bottom navigation bar for easy access
+- **Sepia Vintage Theme** - Paper-like appearance with green accents
+- **Dark/Light Mode Toggle** - Optimized for any lighting condition
+- **Smooth Animations** - Elegant transitions and hover effects
+- **Emoji Icons** - Fun and friendly interface indicators
+- **Card-based Layout** - Clean, modern design
+- **Mobile Navigation** - Bottom navigation bar for easy access
 
 ## 📱 Mobile Features
 
-- **Touch Feedback**: Haptic vibration on button presses (if supported)
-- **Keyboard Shortcuts**: Enter to save, Escape to cancel
-- **Responsive Layout**: Optimized for all mobile screen sizes
-- **Fast Loading**: Minimal dependencies for quick startup
+- **Touch Optimized** - Haptic feedback and touch-friendly interface
+- **Keyboard Shortcuts** - Enter to submit, Escape to cancel
+- **Responsive Layout** - Optimized for all mobile screen sizes
+- **Fast Loading** - Minimal dependencies for quick startup
+- **PWA Support** - Install as app on mobile devices
 
 ## 🎲 Game Rules
 
@@ -66,10 +72,10 @@ To run locally:
 
 This project is open source and available under the MIT License.
 
-## 🎉 Enjoy Playing!
+## 🎉 Perfect for Family Game Night
 
-Have fun with your Yams games! The app will help you focus on the fun of rolling dice while keeping track of scores automatically.
+Built specifically for playing Yams with real dice - no digital dice, just pure scorekeeping. The app remembers your game history, tracks player stats, and makes scoring effortless so you can focus on the fun!
 
 ---
 
-*Built with ❤️ for dice game enthusiasts everywhere!*
+**Built with ❤️ by Mihai from [Respira Cafe](https://respira.cafe) - A tool built for my kids to enjoy our family Yams games!**
