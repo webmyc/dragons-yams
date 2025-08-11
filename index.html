@@ -145,6 +145,37 @@
         </nav>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhPTxQJtkMmDY3PSwfAgoftaGwQ2OcvQQ",
+            authDomain: "dragons-yams.firebaseapp.com",
+            projectId: "dragons-yams",
+            storageBucket: "dragons-yams.firebasestorage.app",
+            messagingSenderId: "373946387861",
+            appId: "1:373946387861:web:2d6301b734dfa380f7fa9c",
+            measurementId: "G-JBM88DPC9V"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.db = db;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.collection = collection;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.limit = limit;
+    </script>
+
     <script src="script.js"></script>
 </body>
 </html>

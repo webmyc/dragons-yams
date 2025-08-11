@@ -76,11 +76,11 @@ function initApp() {
     updateNavigation();
 }
 
-// Local Storage Functions
+// Local Storage Functions - Now with Firebase backup
 function saveToStorage() {
+    // Save to local storage for offline access
     localStorage.setItem('yamsGameState', JSON.stringify({
         allPlayers: gameState.allPlayers,
-        gameHistory: gameState.gameHistory,
         leaderboard: gameState.leaderboard
     }));
 }
@@ -90,8 +90,106 @@ function loadFromStorage() {
     if (saved) {
         const data = JSON.parse(saved);
         gameState.allPlayers = data.allPlayers || gameState.allPlayers;
-        gameState.gameHistory = data.gameHistory || [];
         gameState.leaderboard = data.leaderboard || {};
+    }
+}
+
+// Firebase Functions for server-side storage
+async function saveGameToFirebase(gameRecord) {
+    try {
+        if (window.db) {
+            await window.addDoc(window.collection(window.db, "games"), {
+                ...gameRecord,
+                timestamp: new Date().toISOString()
+            });
+            console.log("Game saved to Firebase");
+        }
+    } catch (error) {
+        console.error("Error saving to Firebase:", error);
+        // Fallback to local storage if Firebase fails
+        saveGameToLocalStorage(gameRecord);
+    }
+}
+
+function saveGameToLocalStorage(gameRecord) {
+    const localGames = JSON.parse(localStorage.getItem('yamsGameHistory') || '[]');
+    localGames.push(gameRecord);
+    localStorage.setItem('yamsGameHistory', JSON.stringify(localGames));
+}
+
+async function loadGamesFromFirebase() {
+    try {
+        if (window.db) {
+            const q = window.query(
+                window.collection(window.db, "games"), 
+                window.orderBy("timestamp", "desc"), 
+                window.limit(50)
+            );
+            const querySnapshot = await window.getDocs(q);
+            const games = [];
+            querySnapshot.forEach((doc) => {
+                games.push({ id: doc.id, ...doc.data() });
+            });
+            return games;
+        }
+    } catch (error) {
+        console.error("Error loading from Firebase:", error);
+        // Fallback to local storage
+        return loadGamesFromLocalStorage();
+    }
+    return [];
+}
+
+function loadGamesFromLocalStorage() {
+    const localGames = JSON.parse(localStorage.getItem('yamsGameHistory') || '[]');
+    return localGames.map(game => ({ id: game.date, ...game }));
+}
+
+async function renderHistory() {
+    elements.historyList.innerHTML = '';
+    
+    // Show loading state
+    elements.historyList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Loading history... 📚</p>';
+    
+    try {
+        // Try to load from Firebase first, fallback to local storage
+        const games = await loadGamesFromFirebase();
+        
+        if (games.length === 0) {
+            elements.historyList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No games played yet! 🎲</p>';
+            return;
+        }
+        
+        elements.historyList.innerHTML = '';
+        
+        games.forEach(game => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            
+            const winner = Object.entries(game.scores).reduce((a, b) => {
+                const aTotal = calculatePlayerTotal(game.scores[a[0]]);
+                const bTotal = calculatePlayerTotal(game.scores[b[0]]);
+                return aTotal > bTotal ? a : b;
+            })[0];
+            
+            const winnerScore = calculatePlayerTotal(game.scores[winner]);
+            const duration = game.duration ? formatDuration(game.duration) : 'Unknown';
+            const location = game.location || 'Unknown location';
+            const date = game.timestamp || game.date;
+            
+            historyItem.innerHTML = `
+                <div class="history-date">${new Date(date).toLocaleDateString()} at ${new Date(date).toLocaleTimeString()}</div>
+                <div class="history-location">📍 ${location}</div>
+                <div class="history-duration">⏱️ Duration: ${duration}</div>
+                <div class="history-players">Players: ${game.players.join(', ')}</div>
+                <div class="history-winner">🏆 Winner: ${winner} (${winnerScore} points)</div>
+            `;
+            
+            elements.historyList.appendChild(historyItem);
+        });
+    } catch (error) {
+        console.error("Error rendering history:", error);
+        elements.historyList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Error loading history. Please try again. 🔄</p>';
     }
 }
 
@@ -448,60 +546,11 @@ function hideScoreModal() {
     elements.scoreModal.classList.remove('active');
 }
 
-function renderHistory() {
-    elements.historyList.innerHTML = '';
-    
-    if (gameState.gameHistory.length === 0) {
-        elements.historyList.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No games played yet! 🎲</p>';
-        return;
-    }
-    
-    gameState.gameHistory.slice().reverse().forEach(game => {
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        
-        const winner = Object.entries(game.scores).reduce((a, b) => {
-            const aTotal = calculatePlayerTotal(game.scores[a[0]]);
-            const bTotal = calculatePlayerTotal(game.scores[b[0]]);
-            return aTotal > bTotal ? a : b;
-        })[0];
-        
-        const winnerScore = calculatePlayerTotal(game.scores[winner]);
-        const duration = game.duration ? formatDuration(game.duration) : 'Unknown';
-        const location = game.location || 'Unknown location';
-        
-        historyItem.innerHTML = `
-            <div class="history-date">${new Date(game.date).toLocaleDateString()} at ${new Date(game.date).toLocaleTimeString()}</div>
-            <div class="history-location">📍 ${location}</div>
-            <div class="history-duration">⏱️ Duration: ${duration}</div>
-            <div class="history-players">Players: ${game.players.join(', ')}</div>
-            <div class="history-winner">🏆 Winner: ${winner} (${winnerScore} points)</div>
-        `;
-        
-        elements.historyList.appendChild(historyItem);
-    });
-}
-
-function calculatePlayerTotal(playerScores) {
-    return calculateUpperScore(playerScores) + calculateLowerScore(playerScores);
-}
-
-function formatDuration(milliseconds) {
-    const minutes = Math.floor(milliseconds / 60000);
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-        return `${hours}h ${remainingMinutes}m`;
-    }
-    return `${minutes}m`;
-}
-
 function renderLeaderboard() {
     elements.leaderboardList.innerHTML = '';
     
     if (Object.keys(gameState.leaderboard).length === 0) {
-        elements.leaderboardList.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No games played yet! 🎲</p>';
+        elements.leaderboardList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No games played yet! 🎲</p>';
         return;
     }
     
@@ -522,6 +571,21 @@ function renderLeaderboard() {
         
         elements.leaderboardList.appendChild(leaderboardItem);
     });
+}
+
+function calculatePlayerTotal(playerScores) {
+    return calculateUpperScore(playerScores) + calculateLowerScore(playerScores);
+}
+
+function formatDuration(milliseconds) {
+    const minutes = Math.floor(milliseconds / 60000);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
 }
 
 // Game Logic Functions
@@ -608,7 +672,7 @@ function getLocationName(latitude, longitude) {
     });
 }
 
-function endGame() {
+async function endGame() {
     const gameEndTime = Date.now();
     const duration = gameEndTime - gameState.gameStartTime;
     
@@ -622,7 +686,8 @@ function endGame() {
         location: gameState.gameLocation
     };
     
-    gameState.gameHistory.push(gameRecord);
+    // Save to Firebase (server-side)
+    await saveGameToFirebase(gameRecord);
     
     // Update leaderboard
     gameState.selectedPlayers.forEach(player => {
