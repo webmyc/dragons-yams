@@ -307,14 +307,17 @@ function renderScoreSummary() {
         const usedCategories = Object.keys(playerScores);
         
         const playerRow = document.createElement('div');
-        playerRow.className = 'player-score-row';
-        
         const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
-        const currentIndicator = isCurrentPlayer ? ' 🎯' : '';
+        
+        if (isCurrentPlayer) {
+            playerRow.className = 'player-score-row current-player';
+        } else {
+            playerRow.className = 'player-score-row';
+        }
         
         playerRow.innerHTML = `
             <div>
-                <div class="player-name">${player}${currentIndicator}</div>
+                <div class="player-name">${player}</div>
                 <div class="player-categories">
                     ${usedCategories.map(cat => 
                         `<span class="category-badge">${YAMS_CATEGORIES[cat].name}: ${playerScores[cat]}</span>`
