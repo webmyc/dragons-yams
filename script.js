@@ -226,19 +226,25 @@ function renderPlayerList() {
     gameState.allPlayers.forEach(player => {
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
-        playerItem.innerHTML = `
-            <input type="checkbox" id="player_${player}" value="${player}">
-            <label for="player_${player}">${player}</label>
-        `;
+        playerItem.textContent = player;
         
-        const checkbox = playerItem.querySelector('input');
-        checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-                gameState.selectedPlayers.push(player);
-            } else {
+        // Check if player is already selected
+        if (gameState.selectedPlayers.includes(player)) {
+            playerItem.classList.add('selected');
+        }
+        
+        playerItem.addEventListener('click', () => {
+            if (gameState.selectedPlayers.includes(player)) {
+                // Deselect player
                 gameState.selectedPlayers = gameState.selectedPlayers.filter(p => p !== player);
+                playerItem.classList.remove('selected');
+            } else {
+                // Select player
+                gameState.selectedPlayers.push(player);
+                playerItem.classList.add('selected');
             }
             updateStartButton();
+            addHapticFeedback();
         });
         
         elements.playerList.appendChild(playerItem);
