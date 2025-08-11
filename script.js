@@ -12,8 +12,8 @@ const YAMS_CATEGORIES = {
     threeOfAKind: { name: "Three of a Kind", description: "Sum of all dice if 3+ same", maxScore: 30, section: "lower" },
     fourOfAKind: { name: "Four of a Kind", description: "Sum of all dice if 4+ same", maxScore: 30, section: "lower" },
     fullHouse: { name: "Full House", description: "25 points (3+2 of same)", maxScore: 25, section: "lower" },
-    smallStraight: { name: "Small Straight", description: "30 points (4 consecutive)", maxScore: 30, section: "lower" },
-    largeStraight: { name: "Large Straight", description: "40 points (5 consecutive)", maxScore: 40, section: "lower" },
+    smallStraight: { name: "Small Straight (Minorante)", description: "30 points (4 consecutive)", maxScore: 30, section: "lower" },
+    largeStraight: { name: "Large Straight (Majorante)", description: "40 points (5 consecutive)", maxScore: 40, section: "lower" },
     yams: { name: "Yams", description: "50 points (5 of same)", maxScore: 50, section: "lower" },
     chance: { name: "Chance", description: "Sum of all dice", maxScore: 30, section: "lower" }
 };
