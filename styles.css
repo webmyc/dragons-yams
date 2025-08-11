@@ -5,15 +5,45 @@
     box-sizing: border-box;
 }
 
+/* CSS Variables for theming */
+:root {
+    --bg-primary: #fdf6e3;
+    --bg-secondary: #f5e6d3;
+    --text-primary: #2c1810;
+    --text-secondary: #5d4e37;
+    --border-primary: #8b7355;
+    --border-secondary: #d4c4a8;
+    --accent-color: #2d5a27;
+    --accent-light: #4a7c59;
+    --accent-dark: #1e3d1a;
+    --shadow-color: rgba(139, 115, 85, 0.2);
+    --paper-texture: #f4e4c1;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #2c1810;
+    --bg-secondary: #3d2a1a;
+    --text-primary: #f4e4c1;
+    --text-secondary: #d4c4a8;
+    --border-primary: #8b7355;
+    --border-secondary: #5d4e37;
+    --accent-color: #4a7c59;
+    --accent-light: #6b9a7a;
+    --accent-dark: #2d5a27;
+    --shadow-color: rgba(139, 115, 85, 0.3);
+    --paper-texture: #3d2a1a;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #ffffff;
+    background: var(--bg-primary);
     min-height: 100vh;
-    color: #000000;
+    color: var(--text-primary);
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -27,11 +57,42 @@ body {
 
 /* Header with Logo */
 .header {
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
     padding: 20px;
-    text-align: center;
-    border-bottom: 3px solid #000000;
+    border-bottom: 3px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-toggle {
+    background: transparent;
+    border: 2px solid var(--bg-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.theme-toggle:hover {
+    background: var(--bg-primary);
+    color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.theme-icon {
+    transition: transform 0.3s ease;
+}
+
+[data-theme="dark"] .theme-icon {
+    transform: rotate(180deg);
 }
 
 .logo-container {
@@ -67,37 +128,41 @@ body {
     padding: 20px;
     padding-bottom: 100px;
     min-height: calc(100vh - 200px);
-    background: #ffffff;
+    background: var(--bg-primary);
     -webkit-overflow-scrolling: touch;
+    transition: background-color 0.3s ease;
 }
 
 /* Paper Card Design */
 .paper-card {
-    background: #ffffff;
-    border: 2px solid #000000;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-primary);
     border-radius: 0;
-    box-shadow: 0 2px 0 #000000;
+    box-shadow: 0 2px 0 var(--border-primary);
     position: relative;
     overflow: hidden;
     margin-bottom: 20px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .paper-header {
-    background: #f8f8f8;
+    background: var(--bg-secondary);
     padding: 16px 20px;
-    border-bottom: 2px solid #000000;
+    border-bottom: 2px solid var(--border-primary);
     position: relative;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .paper-header h2,
 .paper-header h3 {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #000000;
+    color: var(--text-primary);
     font-weight: 700;
     font-size: 1.2rem;
     margin: 0;
     text-align: center;
     letter-spacing: -0.3px;
+    transition: color 0.3s ease;
 }
 
 /* Screens */
@@ -145,7 +210,7 @@ body {
 .player-item {
     display: inline-block;
     padding: 12px 20px;
-    border: 2px solid #e5e5e5;
+    border: 2px solid var(--border-secondary);
     border-radius: 25px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
@@ -153,22 +218,22 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
-    background: #ffffff;
-    color: #000000;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     text-align: center;
     min-width: 80px;
 }
 
 .player-item:hover {
-    border-color: #000000;
+    border-color: var(--border-primary);
     transform: translateY(-1px);
 }
 
 .player-item.selected {
-    background: #000000;
-    color: #ffffff;
-    border-color: #000000;
-    box-shadow: 0 2px 0 #000000;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 2px 0 var(--accent-color);
     transform: translateY(-1px);
 }
 
@@ -220,19 +285,29 @@ body {
 }
 
 .btn-primary {
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-color: var(--accent-color);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #333333;
+    background: var(--accent-light);
+    border-color: var(--accent-light);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .btn-secondary {
-    background: #ffffff;
-    color: #000000;
+    background: var(--bg-primary);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -285,8 +360,8 @@ body {
 .score-header {
     display: grid;
     grid-template-columns: 2fr repeat(auto-fit, minmax(80px, 1fr));
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
     font-weight: 700;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     position: sticky;
@@ -341,8 +416,9 @@ body {
 
 .score-row.total-row,
 .score-row.grand-total-row {
-    background: #f8f8f8;
-    border-bottom: 2px solid #000000;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-bottom: 2px solid var(--accent-color);
     font-weight: 700;
     position: sticky;
     bottom: 0;
@@ -406,14 +482,14 @@ body {
 }
 
 .score-cell.current {
-    background: #000000;
-    color: #ffffff;
-    box-shadow: inset 0 0 0 2px #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    box-shadow: inset 0 0 0 2px var(--bg-primary);
 }
 
 .score-cell.used {
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
 }
 
 .score-cell.total-cell {
@@ -598,8 +674,8 @@ body {
 }
 
 .nav-btn.active {
-    background: #000000;
-    color: #ffffff;
+    background: var(--accent-color);
+    color: var(--bg-primary);
 }
 
 .nav-icon {

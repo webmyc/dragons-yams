@@ -65,12 +65,14 @@ const elements = {
     backBtns: {
         main: document.getElementById('backToMainBtn'),
         leaderboard: document.getElementById('backToMainFromLeaderboardBtn')
-    }
+    },
+    themeToggle: document.getElementById('themeToggle')
 };
 
 // Initialize App
 function initApp() {
     loadFromStorage();
+    loadTheme();
     renderPlayerList();
     setupEventListeners();
     updateNavigation();
@@ -768,6 +770,9 @@ function setupEventListeners() {
     // Game actions
     elements.endGameBtn.addEventListener('click', endGame);
     
+    // Theme toggle
+    elements.themeToggle.addEventListener('click', toggleTheme);
+    
     // Modal backdrop click
     elements.scoreModal.addEventListener('click', (e) => {
         if (e.target === elements.scoreModal) {
@@ -799,6 +804,32 @@ document.querySelector('.header h1').addEventListener('click', () => {
 });
 
 // Add haptic feedback for mobile (if supported)
+// Theme Functions
+function loadTheme() {
+    const savedTheme = localStorage.getItem('yamsTheme') || 'light';
+    setTheme(savedTheme);
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('yamsTheme', theme);
+    
+    // Update theme toggle icon
+    const themeIcon = elements.themeToggle.querySelector('.theme-icon');
+    if (theme === 'dark') {
+        themeIcon.textContent = '☀️';
+    } else {
+        themeIcon.textContent = '🌙';
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    addHapticFeedback();
+}
+
 function addHapticFeedback() {
     if ('vibrate' in navigator) {
         navigator.vibrate(50);
