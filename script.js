@@ -206,6 +206,15 @@ function showScreen(screenName) {
     });
     elements.screens[screenName].classList.add('active');
     gameState.currentScreen = screenName;
+    
+    // Hide bottom navigation during gameplay
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (screenName === 'gameScreen') {
+        bottomNav.classList.add('hidden');
+    } else {
+        bottomNav.classList.remove('hidden');
+    }
+    
     updateNavigation();
 }
 
@@ -804,7 +813,11 @@ function setupEventListeners() {
     elements.startGameBtn.addEventListener('click', startGame);
     
     // Game actions
-    elements.endGameBtn.addEventListener('click', endGame);
+    elements.endGameBtn.addEventListener('click', () => {
+        if (confirm('⚠️ Are you sure you want to end this game? This action cannot be undone.')) {
+            endGame();
+        }
+    });
     
     // Score input interface
     elements.categorySelect.addEventListener('change', updateSubmitButton);
