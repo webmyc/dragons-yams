@@ -93,11 +93,31 @@ function saveToStorage() {
 }
 
 function loadFromStorage() {
-    const saved = localStorage.getItem('yamsGameState');
-    if (saved) {
-        const data = JSON.parse(saved);
-        gameState.allPlayers = data.allPlayers || gameState.allPlayers;
-        gameState.leaderboard = data.leaderboard || {};
+    try {
+        const saved = localStorage.getItem('yamsGameState');
+        if (saved) {
+            const data = JSON.parse(saved);
+            
+            // Safety check: ensure allPlayers is a valid array
+            if (Array.isArray(data.allPlayers) && data.allPlayers.length > 0) {
+                // Filter out any invalid players
+                gameState.allPlayers = data.allPlayers.filter(player => 
+                    typeof player === 'string' && player.trim() !== ''
+                );
+            }
+            
+            // Safety check: ensure leaderboard is an object
+            if (data.leaderboard && typeof data.leaderboard === 'object') {
+                gameState.leaderboard = data.leaderboard;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading from storage:', error);
+        // Reset to defaults if there's an error
+        gameState.allPlayers = ['Ioana', 'Iancu', 'Dana', 'Mihai'];
+        gameState.leaderboard = {};
+        // Clear corrupted data
+        localStorage.removeItem('yamsGameState');
     }
 }
 
@@ -239,7 +259,26 @@ function updateNavigation() {
 
 function renderPlayerList() {
     elements.playerList.innerHTML = '';
+    
+    // Safety check: ensure allPlayers is an array
+    if (!Array.isArray(gameState.allPlayers)) {
+        console.warn('allPlayers is not an array, resetting to default');
+        gameState.allPlayers = ['Ioana', 'Iancu', 'Dana', 'Mihai'];
+    }
+    
+    // Safety check: ensure selectedPlayers is an array
+    if (!Array.isArray(gameState.selectedPlayers)) {
+        console.warn('selectedPlayers is not an array, resetting');
+        gameState.selectedPlayers = [];
+    }
+    
     gameState.allPlayers.forEach(player => {
+        // Safety check: ensure player is a valid string
+        if (typeof player !== 'string' || player.trim() === '') {
+            console.warn('Invalid player found:', player);
+            return;
+        }
+        
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
         playerItem.textContent = player;
@@ -265,6 +304,10 @@ function renderPlayerList() {
         
         elements.playerList.appendChild(playerItem);
     });
+    
+    // Debug logging
+    console.log('Rendered players:', gameState.allPlayers);
+    console.log('Selected players:', gameState.selectedPlayers);
 }
 
 function updateStartButton() {
