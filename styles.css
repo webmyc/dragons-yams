@@ -338,10 +338,11 @@ body {
 .player-selection h3 {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin-bottom: 15px;
-    color: #000000;
+    color: var(--text-primary);
     font-size: 1.1rem;
     font-weight: 600;
     text-align: center;
+    transition: color 0.3s ease;
 }
 
 .player-list {
@@ -477,14 +478,16 @@ body {
 .game-header .current-player {
     padding: 16px 20px;
     font-size: 1.1rem;
-    color: #000000;
+    color: var(--text-primary);
     text-align: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: color 0.3s ease;
 }
 
 .player-name {
     font-weight: 700;
-    color: #000000;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
 }
 
 /* Scoreboard - Minimalist Design */
