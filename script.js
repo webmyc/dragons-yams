@@ -320,7 +320,7 @@ function renderScoreSummary() {
                 <div class="player-name">${player}</div>
                 <div class="player-categories">
                     ${usedCategories.map(cat => 
-                        `<span class="category-badge">${YAMS_CATEGORIES[cat].name}: ${playerScores[cat]}</span>`
+                        `<span class="category-badge used">${YAMS_CATEGORIES[cat].name}: ${playerScores[cat]}</span>`
                     ).join('')}
                 </div>
             </div>
@@ -343,6 +343,12 @@ function submitScore() {
     const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
     
     if (!category || isNaN(points) || points < 0) {
+        return;
+    }
+    
+    // Check if category has already been used by this player
+    if (gameState.scores[currentPlayer] && gameState.scores[currentPlayer][category] !== undefined) {
+        alert(`Category "${YAMS_CATEGORIES[category].name}" has already been used by ${currentPlayer}. Each category can only be used once per player.`);
         return;
     }
     

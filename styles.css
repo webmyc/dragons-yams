@@ -334,6 +334,18 @@ body {
     color: var(--text-secondary);
 }
 
+.category-badge.used {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-color: var(--accent-dark);
+}
+
+.category-badge.available {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--accent-color);
+}
+
 .paper-header {
     background: var(--bg-secondary);
     padding: 16px 20px;
