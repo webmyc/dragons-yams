@@ -66,7 +66,11 @@ const elements = {
         main: document.getElementById('backToMainBtn'),
         leaderboard: document.getElementById('backToMainFromLeaderboardBtn')
     },
-    themeToggle: document.getElementById('themeToggle')
+    themeToggle: document.getElementById('themeToggle'),
+    categorySelect: document.getElementById('categorySelect'),
+    pointsInput: document.getElementById('pointsInput'),
+    submitScoreBtn: document.getElementById('submitScoreBtn'),
+    scoreSummary: document.getElementById('scoreSummary')
 };
 
 // Initialize App
@@ -257,113 +261,110 @@ function updateStartButton() {
     elements.startGameBtn.disabled = gameState.selectedPlayers.length < 2;
 }
 
-function renderScoreTable() {
-    elements.scoreTable.innerHTML = '';
+function renderScoreInterface() {
+    // Populate category selector
+    elements.categorySelect.innerHTML = '<option value="">Choose a category...</option>';
     
-    // Create the score sheet table
-    const tableHTML = `
-        <div class="score-sheet">
-            <div class="score-header">
-                <div class="category-column">Category</div>
-                ${gameState.selectedPlayers.map(player => `<div class="player-column">${player}</div>`).join('')}
-            </div>
-            
-            <div class="score-sections">
-                <!-- Upper Section -->
-                <div class="section-header">Upper Section</div>
-                ${Object.entries(YAMS_CATEGORIES)
-                    .filter(([, cat]) => cat.section === 'upper')
-                    .map(([key, category]) => {
-                        return `
-                            <div class="score-row" data-category="${key}">
-                                <div class="category-cell">
-                                    <div class="category-name">${category.name}</div>
-                                    <div class="category-desc">${category.description}</div>
-                                </div>
-                                ${gameState.selectedPlayers.map(player => {
-                                    const playerScores = gameState.scores[player] || {};
-                                    const isUsed = playerScores[key] !== undefined;
-                                    const score = playerScores[key] || '';
-                                    const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
-                                    
-                                    return `
-                                        <div class="score-cell ${isCurrentPlayer ? 'current' : ''} ${isUsed ? 'used' : ''}" 
-                                             data-player="${player}" data-category="${key}">
-                                            ${isUsed ? 
-                                                `<span class="score-value">${score}</span>` : 
-                                                `<input type="number" class="score-input" min="0" max="${category.maxScore}" 
-                                                        placeholder="0-${category.maxScore}" data-player="${player}" data-category="${key}">`
-                                            }
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `;
-                    }).join('')}
-                
-                <!-- Upper Section Total -->
-                <div class="score-row total-row">
-                    <div class="category-cell">
-                        <div class="category-name">Upper Total</div>
-                    </div>
-                    ${gameState.selectedPlayers.map(player => {
-                        const playerScores = gameState.scores[player] || {};
-                        const upperTotal = calculateUpperScore(playerScores);
-                        return `<div class="score-cell total-cell">${upperTotal}</div>`;
-                    }).join('')}
-                </div>
-                
-                <!-- Lower Section -->
-                <div class="section-header">Lower Section</div>
-                ${Object.entries(YAMS_CATEGORIES)
-                    .filter(([, cat]) => cat.section === 'lower')
-                    .map(([key, category]) => {
-                        return `
-                            <div class="score-row" data-category="${key}">
-                                <div class="category-cell">
-                                    <div class="category-name">${category.name}</div>
-                                    <div class="category-desc">${category.description}</div>
-                                </div>
-                                ${gameState.selectedPlayers.map(player => {
-                                    const playerScores = gameState.scores[player] || {};
-                                    const isUsed = playerScores[key] !== undefined;
-                                    const score = playerScores[key] || '';
-                                    const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
-                                    
-                                    return `
-                                        <div class="score-cell ${isCurrentPlayer ? 'current' : ''} ${isUsed ? 'used' : ''}" 
-                                             data-player="${player}" data-category="${key}">
-                                            ${isUsed ? 
-                                                `<span class="score-value">${score}</span>` : 
-                                                `<input type="number" class="score-input" min="0" max="${category.maxScore}" 
-                                                        placeholder="0-${category.maxScore}" data-player="${player}" data-category="${key}">`
-                                            }
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `;
-                    }).join('')}
-                
-                <!-- Grand Total -->
-                <div class="score-row grand-total-row">
-                    <div class="category-cell">
-                        <div class="category-name">Grand Total</div>
-                    </div>
-                    ${gameState.selectedPlayers.map(player => {
-                        const playerScores = gameState.scores[player] || {};
-                        const grandTotal = calculatePlayerTotal(playerScores);
-                        return `<div class="score-cell grand-total-cell">${grandTotal}</div>`;
-                    }).join('')}
+    Object.entries(YAMS_CATEGORIES).forEach(([key, category]) => {
+        const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
+        const playerScores = gameState.scores[currentPlayer] || {};
+        
+        // Only show categories that haven't been used by current player
+        if (playerScores[key] === undefined) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = `${category.name} (${category.description})`;
+            elements.categorySelect.appendChild(option);
+        }
+    });
+    
+    // Clear points input
+    elements.pointsInput.value = '';
+    
+    // Update submit button state
+    updateSubmitButton();
+    
+    // Render score summary
+    renderScoreSummary();
+}
+
+function renderScoreSummary() {
+    elements.scoreSummary.innerHTML = '';
+    
+    gameState.selectedPlayers.forEach(player => {
+        const playerScores = gameState.scores[player] || {};
+        const total = calculatePlayerTotal(playerScores);
+        const usedCategories = Object.keys(playerScores);
+        
+        const playerRow = document.createElement('div');
+        playerRow.className = 'player-score-row';
+        
+        const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
+        const currentIndicator = isCurrentPlayer ? ' 🎯' : '';
+        
+        playerRow.innerHTML = `
+            <div>
+                <div class="player-name">${player}${currentIndicator}</div>
+                <div class="player-categories">
+                    ${usedCategories.map(cat => 
+                        `<span class="category-badge">${YAMS_CATEGORIES[cat].name}: ${playerScores[cat]}</span>`
+                    ).join('')}
                 </div>
             </div>
-        </div>
-    `;
+            <div class="player-total">${total} pts</div>
+        `;
+        
+        elements.scoreSummary.appendChild(playerRow);
+    });
+}
+
+function updateSubmitButton() {
+    const categorySelected = elements.categorySelect.value !== '';
+    const pointsEntered = elements.pointsInput.value !== '';
+    elements.submitScoreBtn.disabled = !(categorySelected && pointsEntered);
+}
+
+function submitScore() {
+    const category = elements.categorySelect.value;
+    const points = parseInt(elements.pointsInput.value);
+    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
     
-    elements.scoreTable.innerHTML = tableHTML;
+    if (!category || isNaN(points) || points < 0) {
+        return;
+    }
     
-    // Add event listeners for score inputs
-    setupScoreInputListeners();
+    // Validate points against category max
+    const categoryData = YAMS_CATEGORIES[category];
+    if (points > categoryData.maxScore) {
+        alert(`Points cannot exceed ${categoryData.maxScore} for ${categoryData.name}`);
+        return;
+    }
+    
+    // Save the score
+    if (!gameState.scores[currentPlayer]) {
+        gameState.scores[currentPlayer] = {};
+    }
+    gameState.scores[currentPlayer][category] = points;
+    
+    // Add haptic feedback
+    addHapticFeedback();
+    
+    // Move to next player
+    gameState.currentPlayerIndex++;
+    
+    // Check if round is complete
+    if (gameState.currentPlayerIndex >= gameState.selectedPlayers.length) {
+        gameState.currentPlayerIndex = 0;
+        gameState.currentRound++;
+        
+        // Check if game is complete
+        if (checkGameCompletion()) {
+            return;
+        }
+    }
+    
+    // Update display
+    updateGameDisplay();
 }
 
 function setupScoreInputListeners() {
@@ -546,7 +547,7 @@ function calculateLowerScore(playerScores) {
 function updateGameDisplay() {
     elements.currentRound.textContent = gameState.currentRound;
     elements.currentPlayerName.textContent = gameState.selectedPlayers[gameState.currentPlayerIndex];
-    renderScoreTable();
+    renderScoreInterface();
 }
 
 // Remove modal-based scoring - now using inline scoring
@@ -769,6 +770,11 @@ function setupEventListeners() {
     
     // Game actions
     elements.endGameBtn.addEventListener('click', endGame);
+    
+    // Score input interface
+    elements.categorySelect.addEventListener('change', updateSubmitButton);
+    elements.pointsInput.addEventListener('input', updateSubmitButton);
+    elements.submitScoreBtn.addEventListener('click', submitScore);
     
     // Theme toggle
     elements.themeToggle.addEventListener('click', toggleTheme);

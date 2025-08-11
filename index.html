@@ -111,21 +111,33 @@
                     </div>
                 </div>
 
-                <div class="paper-card scoreboard">
+                <div class="paper-card score-input-card">
                     <div class="paper-header">
-                        <h3>📊 Score Sheet</h3>
+                        <h3>🎯 Enter Score</h3>
                         <div class="paper-decoration"></div>
                     </div>
-                    <div class="score-table">
-                        <div class="table-header">
-                            <span>Player</span>
-                            <span>Upper</span>
-                            <span>Lower</span>
-                            <span>Total</span>
+                    <div class="score-input-container">
+                        <div class="category-selector">
+                            <label for="categorySelect">Select Category:</label>
+                            <select id="categorySelect" class="category-select">
+                                <option value="">Choose a category...</option>
+                            </select>
                         </div>
-                        <div id="scoreTable" class="table-body">
-                            <!-- Scores will be populated here -->
+                        <div class="points-input">
+                            <label for="pointsInput">Points:</label>
+                            <input type="number" id="pointsInput" class="points-field" placeholder="Enter points..." min="0" max="50">
                         </div>
+                        <button id="submitScoreBtn" class="btn btn-primary" disabled>✅ Submit Score</button>
+                    </div>
+                </div>
+
+                <div class="paper-card scoreboard">
+                    <div class="paper-header">
+                        <h3>📊 Score Summary</h3>
+                        <div class="paper-decoration"></div>
+                    </div>
+                    <div id="scoreSummary" class="score-summary">
+                        <!-- Score summary will be populated here -->
                     </div>
                 </div>
 
