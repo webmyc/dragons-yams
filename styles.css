@@ -252,12 +252,22 @@ body {
 
 .score-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto auto;
     gap: 15px;
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
     align-items: center;
     transition: background-color 0.3s ease;
+}
+
+.score-row.header-row {
+    font-weight: 700;
+    color: #667eea;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px 10px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
 }
 
 .score-row:hover {
@@ -279,6 +289,11 @@ body {
 .score-value {
     font-weight: 700;
     font-size: 1.1rem;
+}
+
+.score-value.total {
+    color: #ff6b6b;
+    font-size: 1.2rem;
 }
 
 /* Game Actions */
@@ -315,8 +330,10 @@ body {
     border-radius: 20px;
     padding: 25px;
     margin: 20px;
-    max-width: 400px;
+    max-width: 450px;
     width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease-in-out;
 }
@@ -333,52 +350,97 @@ body {
     font-size: 1.3rem;
 }
 
-.score-input {
+/* Categories Container */
+.categories-container {
     margin-bottom: 20px;
 }
 
-.score-input input {
-    width: 100%;
-    padding: 15px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    text-align: center;
-    margin-bottom: 15px;
+.section-title {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.1rem;
+    margin: 20px 0 10px 0;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
 }
 
-.score-input input:focus {
+.categories-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.category-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.category-item.used {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-color: #28a745;
+}
+
+.category-info {
+    flex: 1;
+}
+
+.category-name {
+    display: block;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.category-desc {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.category-score {
+    min-width: 80px;
+    text-align: right;
+}
+
+.category-input {
+    width: 60px;
+    padding: 8px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.category-input:focus {
     outline: none;
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
-.quick-scores {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
-
-.quick-score {
-    padding: 10px;
-    border: 2px solid #e9ecef;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-
-.quick-score:hover {
-    background: #667eea;
-    color: white;
-    border-color: #667eea;
-    transform: scale(1.05);
+.used-score {
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .modal-actions {
     display: flex;
     gap: 15px;
+    margin-top: 20px;
 }
 
 .modal-actions .btn {
@@ -426,6 +488,13 @@ body {
 .history-date {
     font-size: 0.9rem;
     color: #888;
+    margin-bottom: 5px;
+}
+
+.history-location,
+.history-duration {
+    font-size: 0.9rem;
+    color: #666;
     margin-bottom: 5px;
 }
 
@@ -556,10 +625,25 @@ body {
     .modal-content {
         margin: 15px;
         padding: 20px;
+        max-height: 85vh;
     }
     
-    .quick-scores {
-        grid-template-columns: repeat(2, 1fr);
+    .score-row {
+        grid-template-columns: 1fr auto auto auto;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .category-item {
+        padding: 10px 12px;
+    }
+    
+    .category-name {
+        font-size: 0.9rem;
+    }
+    
+    .category-desc {
+        font-size: 0.8rem;
     }
 }
 

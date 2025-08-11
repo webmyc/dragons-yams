@@ -1,3 +1,23 @@
+// Yams Game Categories and Rules
+const YAMS_CATEGORIES = {
+    // Upper Section (1-6)
+    ones: { name: "Ones", description: "Sum of all 1s", maxScore: 5, section: "upper" },
+    twos: { name: "Twos", description: "Sum of all 2s", maxScore: 10, section: "upper" },
+    threes: { name: "Threes", description: "Sum of all 3s", maxScore: 15, section: "upper" },
+    fours: { name: "Fours", description: "Sum of all 4s", maxScore: 20, section: "upper" },
+    fives: { name: "Fives", description: "Sum of all 5s", maxScore: 25, section: "upper" },
+    sixes: { name: "Sixes", description: "Sum of all 6s", maxScore: 30, section: "upper" },
+    
+    // Lower Section
+    threeOfAKind: { name: "Three of a Kind", description: "Sum of all dice if 3+ same", maxScore: 30, section: "lower" },
+    fourOfAKind: { name: "Four of a Kind", description: "Sum of all dice if 4+ same", maxScore: 30, section: "lower" },
+    fullHouse: { name: "Full House", description: "25 points (3+2 of same)", maxScore: 25, section: "lower" },
+    smallStraight: { name: "Small Straight", description: "30 points (4 consecutive)", maxScore: 30, section: "lower" },
+    largeStraight: { name: "Large Straight", description: "40 points (5 consecutive)", maxScore: 40, section: "lower" },
+    yams: { name: "Yams", description: "50 points (5 of same)", maxScore: 50, section: "lower" },
+    chance: { name: "Chance", description: "Sum of all dice", maxScore: 30, section: "lower" }
+};
+
 // Game State
 let gameState = {
     currentScreen: 'gameSetup',
@@ -7,7 +27,10 @@ let gameState = {
     scores: {},
     gameHistory: [],
     allPlayers: ['Ioana', 'Iancu', 'Dana', 'Mihai'],
-    leaderboard: {}
+    leaderboard: {},
+    gameStartTime: null,
+    gameLocation: '',
+    maxRounds: 13 // 13 categories to fill
 };
 
 // DOM Elements
@@ -130,6 +153,18 @@ function updateStartButton() {
 
 function renderScoreTable() {
     elements.scoreTable.innerHTML = '';
+    
+    // Add header row
+    const headerRow = document.createElement('div');
+    headerRow.className = 'score-row header-row';
+    headerRow.innerHTML = `
+        <span>Player</span>
+        <span>Upper</span>
+        <span>Lower</span>
+        <span>Total</span>
+    `;
+    elements.scoreTable.appendChild(headerRow);
+    
     gameState.selectedPlayers.forEach(player => {
         const scoreRow = document.createElement('div');
         scoreRow.className = 'score-row';
@@ -137,14 +172,42 @@ function renderScoreTable() {
             scoreRow.classList.add('current');
         }
         
-        const currentScore = gameState.scores[player] || 0;
+        const playerScores = gameState.scores[player] || {};
+        const upperScore = calculateUpperScore(playerScores);
+        const lowerScore = calculateLowerScore(playerScores);
+        const totalScore = upperScore + lowerScore;
+        
         scoreRow.innerHTML = `
-            <span>${player}</span>
-            <span class="score-value">${currentScore}</span>
+            <span class="player-name">${player}</span>
+            <span class="score-value">${upperScore}</span>
+            <span class="score-value">${lowerScore}</span>
+            <span class="score-value total">${totalScore}</span>
         `;
         
         elements.scoreTable.appendChild(scoreRow);
     });
+}
+
+function calculateUpperScore(playerScores) {
+    let score = 0;
+    const upperCategories = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+    upperCategories.forEach(cat => {
+        if (playerScores[cat] !== undefined) {
+            score += playerScores[cat];
+        }
+    });
+    return score;
+}
+
+function calculateLowerScore(playerScores) {
+    let score = 0;
+    const lowerCategories = ['threeOfAKind', 'fourOfAKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yams', 'chance'];
+    lowerCategories.forEach(cat => {
+        if (playerScores[cat] !== undefined) {
+            score += playerScores[cat];
+        }
+    });
+    return score;
 }
 
 function updateGameDisplay() {
@@ -156,14 +219,145 @@ function updateGameDisplay() {
 function showScoreModal() {
     const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
     elements.modalPlayerName.textContent = currentPlayer;
-    elements.scoreInput.value = '';
+    
+    // Update modal content to show categories
+    updateScoreModalContent(currentPlayer);
+    
     elements.scoreModal.classList.add('active');
-    elements.scoreInput.focus();
+}
+
+function updateScoreModalContent(player) {
+    const modalContent = document.querySelector('.modal-content');
+    const playerScores = gameState.scores[player] || {};
+    
+    let categoriesHTML = '';
+    Object.entries(YAMS_CATEGORIES).forEach(([key, category]) => {
+        const isUsed = playerScores[key] !== undefined;
+        const score = playerScores[key] || 0;
+        
+        categoriesHTML += `
+            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
+                <div class="category-info">
+                    <span class="category-name">${category.name}</span>
+                    <span class="category-desc">${category.description}</span>
+                </div>
+                <div class="category-score">
+                    ${isUsed ? `<span class="used-score">${score}</span>` : `
+                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
+                    `}
+                </div>
+            </div>
+        `;
+    });
+    
+    // Update modal content
+    modalContent.innerHTML = `
+        <h3>📊 Score for ${player}</h3>
+        <div class="categories-container">
+            <div class="section-title">Upper Section</div>
+            <div class="categories-grid upper-section">
+                ${Object.entries(YAMS_CATEGORIES)
+                    .filter(([, cat]) => cat.section === 'upper')
+                    .map(([key, category]) => {
+                        const isUsed = playerScores[key] !== undefined;
+                        const score = playerScores[key] || 0;
+                        return `
+                            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
+                                <div class="category-info">
+                                    <span class="category-name">${category.name}</span>
+                                    <span class="category-desc">${category.description}</span>
+                                </div>
+                                <div class="category-score">
+                                    ${isUsed ? `<span class="used-score">${score}</span>` : `
+                                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+            </div>
+            
+            <div class="section-title">Lower Section</div>
+            <div class="categories-grid lower-section">
+                ${Object.entries(YAMS_CATEGORIES)
+                    .filter(([, cat]) => cat.section === 'lower')
+                    .map(([key, category]) => {
+                        const isUsed = playerScores[key] !== undefined;
+                        const score = playerScores[key] || 0;
+                        return `
+                            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
+                                <div class="category-info">
+                                    <span class="category-name">${category.name}</span>
+                                    <span class="category-desc">${category.description}</span>
+                                </div>
+                                <div class="category-score">
+                                    ${isUsed ? `<span class="used-score">${score}</span>` : `
+                                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelScoreBtn" class="btn btn-secondary">❌ Cancel</button>
+            <button id="saveScoreBtn" class="btn btn-primary">💾 Save</button>
+        </div>
+    `;
+    
+    // Re-attach event listeners
+    setupModalEventListeners();
+}
+
+function setupModalEventListeners() {
+    // Re-attach event listeners for new modal content
+    document.getElementById('saveScoreBtn').addEventListener('click', saveCategoryScores);
+    document.getElementById('cancelScoreBtn').addEventListener('click', hideScoreModal);
+}
+
+function saveCategoryScores() {
+    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
+    const playerScores = gameState.scores[currentPlayer] || {};
+    
+    // Get all category inputs
+    const categoryInputs = document.querySelectorAll('.category-input');
+    let hasNewScore = false;
+    
+    categoryInputs.forEach(input => {
+        const category = input.closest('.category-item').dataset.category;
+        const score = parseInt(input.value);
+        
+        if (score >= 0 && score <= YAMS_CATEGORIES[category].maxScore) {
+            playerScores[category] = score;
+            hasNewScore = true;
+        }
+    });
+    
+    if (hasNewScore) {
+        gameState.scores[currentPlayer] = playerScores;
+        
+        // Move to next player
+        gameState.currentPlayerIndex++;
+        
+        // Check if round is complete
+        if (gameState.currentPlayerIndex >= gameState.selectedPlayers.length) {
+            gameState.currentPlayerIndex = 0;
+            gameState.currentRound++;
+        }
+        
+        updateGameDisplay();
+        hideScoreModal();
+        
+        // Check if game is complete
+        if (gameState.currentRound > gameState.maxRounds) {
+            endGame();
+        }
+    }
 }
 
 function hideScoreModal() {
     elements.scoreModal.classList.remove('active');
-    elements.scoreInput.value = '';
 }
 
 function renderHistory() {
@@ -178,16 +372,41 @@ function renderHistory() {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         
-        const winner = Object.entries(game.scores).reduce((a, b) => game.scores[a[0]] > game.scores[b[0]] ? a : b)[0];
+        const winner = Object.entries(game.scores).reduce((a, b) => {
+            const aTotal = calculatePlayerTotal(game.scores[a[0]]);
+            const bTotal = calculatePlayerTotal(game.scores[b[0]]);
+            return aTotal > bTotal ? a : b;
+        })[0];
+        
+        const winnerScore = calculatePlayerTotal(game.scores[winner]);
+        const duration = game.duration ? formatDuration(game.duration) : 'Unknown';
+        const location = game.location || 'Unknown location';
         
         historyItem.innerHTML = `
             <div class="history-date">${new Date(game.date).toLocaleDateString()} at ${new Date(game.date).toLocaleTimeString()}</div>
+            <div class="history-location">📍 ${location}</div>
+            <div class="history-duration">⏱️ Duration: ${duration}</div>
             <div class="history-players">Players: ${game.players.join(', ')}</div>
-            <div class="history-winner">🏆 Winner: ${winner} (${game.scores[winner]} points)</div>
+            <div class="history-winner">🏆 Winner: ${winner} (${winnerScore} points)</div>
         `;
         
         elements.historyList.appendChild(historyItem);
     });
+}
+
+function calculatePlayerTotal(playerScores) {
+    return calculateUpperScore(playerScores) + calculateLowerScore(playerScores);
+}
+
+function formatDuration(milliseconds) {
+    const minutes = Math.floor(milliseconds / 60000);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
 }
 
 function renderLeaderboard() {
@@ -219,46 +438,33 @@ function renderLeaderboard() {
 
 // Game Logic Functions
 function startGame() {
+    // Get game location
+    const location = prompt('📍 Where are you playing? (optional)') || 'Unknown location';
+    gameState.gameLocation = location;
+    gameState.gameStartTime = Date.now();
+    
     gameState.scores = {};
     gameState.currentPlayerIndex = 0;
     gameState.currentRound = 1;
     gameState.selectedPlayers.forEach(player => {
-        gameState.scores[player] = 0;
+        gameState.scores[player] = {};
     });
     showScreen('gameScreen');
     updateGameDisplay();
 }
 
-function addScore(score) {
-    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
-    gameState.scores[currentPlayer] += score;
-    
-    // Move to next player
-    gameState.currentPlayerIndex++;
-    
-    // Check if round is complete
-    if (gameState.currentPlayerIndex >= gameState.selectedPlayers.length) {
-        gameState.currentPlayerIndex = 0;
-        gameState.currentRound++;
-    }
-    
-    updateGameDisplay();
-    
-    // Add success animation
-    const scoreRow = elements.scoreTable.children[gameState.currentPlayerIndex];
-    if (scoreRow) {
-        scoreRow.classList.add('success');
-        setTimeout(() => scoreRow.classList.remove('success'), 600);
-    }
-}
-
 function endGame() {
+    const gameEndTime = Date.now();
+    const duration = gameEndTime - gameState.gameStartTime;
+    
     // Save game to history
     const gameRecord = {
         date: new Date().toISOString(),
         players: gameState.selectedPlayers,
         scores: { ...gameState.scores },
-        rounds: gameState.currentRound - 1
+        rounds: gameState.currentRound - 1,
+        duration: duration,
+        location: gameState.gameLocation
     };
     
     gameState.gameHistory.push(gameRecord);
@@ -268,21 +474,30 @@ function endGame() {
         if (!gameState.leaderboard[player]) {
             gameState.leaderboard[player] = { totalScore: 0, gamesPlayed: 0 };
         }
-        gameState.leaderboard[player].totalScore += gameState.scores[player];
+        const playerTotal = calculatePlayerTotal(gameState.scores[player]);
+        gameState.leaderboard[player].totalScore += playerTotal;
         gameState.leaderboard[player].gamesPlayed += 1;
     });
     
     saveToStorage();
     
     // Show winner
-    const winner = Object.entries(gameState.scores).reduce((a, b) => gameState.scores[a[0]] > gameState.scores[b[0]] ? a : b)[0];
-    const winnerScore = gameState.scores[winner];
+    const winner = Object.entries(gameState.scores).reduce((a, b) => {
+        const aTotal = calculatePlayerTotal(gameState.scores[a[0]]);
+        const bTotal = calculatePlayerTotal(gameState.scores[b[0]]);
+        return aTotal > bTotal ? a : b;
+    })[0];
     
-    alert(`🎉 Game Over! 🎉\n\n🏆 Winner: ${winner} with ${winnerScore} points!\n\nThanks for playing! 🎲`);
+    const winnerScore = calculatePlayerTotal(gameState.scores[winner]);
+    const durationFormatted = formatDuration(duration);
+    
+    alert(`🎉 Game Over! 🎉\n\n🏆 Winner: ${winner} with ${winnerScore} points!\n⏱️ Duration: ${durationFormatted}\n📍 Location: ${gameState.gameLocation}\n\nThanks for playing! 🎲`);
     
     // Reset and go back to setup
     gameState.selectedPlayers = [];
     gameState.scores = {};
+    gameState.gameStartTime = null;
+    gameState.gameLocation = '';
     showScreen('gameSetup');
     renderPlayerList();
     updateStartButton();
@@ -328,27 +543,6 @@ function setupEventListeners() {
     elements.addScoreBtn.addEventListener('click', showScoreModal);
     elements.endGameBtn.addEventListener('click', endGame);
     
-    // Score modal
-    elements.saveScoreBtn.addEventListener('click', () => {
-        const score = parseInt(elements.scoreInput.value);
-        if (score >= 0 && score <= 300) {
-            addScore(score);
-            hideScoreModal();
-        } else {
-            alert('Please enter a valid score between 0 and 300!');
-        }
-    });
-    
-    elements.cancelScoreBtn.addEventListener('click', hideScoreModal);
-    
-    // Quick score buttons
-    document.querySelectorAll('.quick-score').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const score = parseInt(btn.dataset.score);
-            elements.scoreInput.value = score;
-        });
-    });
-    
     // Modal backdrop click
     elements.scoreModal.addEventListener('click', (e) => {
         if (e.target === elements.scoreModal) {
@@ -359,9 +553,7 @@ function setupEventListeners() {
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (gameState.currentScreen === 'gameScreen') {
-            if (e.key === 'Enter' && elements.scoreModal.classList.contains('active')) {
-                elements.saveScoreBtn.click();
-            } else if (e.key === 'Escape' && elements.scoreModal.classList.contains('active')) {
+            if (e.key === 'Escape' && elements.scoreModal.classList.contains('active')) {
                 hideScoreModal();
             }
         }
