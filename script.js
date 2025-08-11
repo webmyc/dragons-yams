@@ -154,38 +154,172 @@ function updateStartButton() {
 function renderScoreTable() {
     elements.scoreTable.innerHTML = '';
     
-    // Add header row
-    const headerRow = document.createElement('div');
-    headerRow.className = 'score-row header-row';
-    headerRow.innerHTML = `
-        <span>Player</span>
-        <span>Upper</span>
-        <span>Lower</span>
-        <span>Total</span>
+    // Create the score sheet table
+    const tableHTML = `
+        <div class="score-sheet">
+            <div class="score-header">
+                <div class="category-column">Category</div>
+                ${gameState.selectedPlayers.map(player => `<div class="player-column">${player}</div>`).join('')}
+            </div>
+            
+            <div class="score-sections">
+                <!-- Upper Section -->
+                <div class="section-header">Upper Section</div>
+                ${Object.entries(YAMS_CATEGORIES)
+                    .filter(([, cat]) => cat.section === 'upper')
+                    .map(([key, category]) => {
+                        return `
+                            <div class="score-row" data-category="${key}">
+                                <div class="category-cell">
+                                    <div class="category-name">${category.name}</div>
+                                    <div class="category-desc">${category.description}</div>
+                                </div>
+                                ${gameState.selectedPlayers.map(player => {
+                                    const playerScores = gameState.scores[player] || {};
+                                    const isUsed = playerScores[key] !== undefined;
+                                    const score = playerScores[key] || '';
+                                    const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
+                                    
+                                    return `
+                                        <div class="score-cell ${isCurrentPlayer ? 'current' : ''} ${isUsed ? 'used' : ''}" 
+                                             data-player="${player}" data-category="${key}">
+                                            ${isUsed ? 
+                                                `<span class="score-value">${score}</span>` : 
+                                                `<input type="number" class="score-input" min="0" max="${category.maxScore}" 
+                                                        placeholder="0-${category.maxScore}" data-player="${player}" data-category="${key}">`
+                                            }
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }).join('')}
+                
+                <!-- Upper Section Total -->
+                <div class="score-row total-row">
+                    <div class="category-cell">
+                        <div class="category-name">Upper Total</div>
+                    </div>
+                    ${gameState.selectedPlayers.map(player => {
+                        const playerScores = gameState.scores[player] || {};
+                        const upperTotal = calculateUpperScore(playerScores);
+                        return `<div class="score-cell total-cell">${upperTotal}</div>`;
+                    }).join('')}
+                </div>
+                
+                <!-- Lower Section -->
+                <div class="section-header">Lower Section</div>
+                ${Object.entries(YAMS_CATEGORIES)
+                    .filter(([, cat]) => cat.section === 'lower')
+                    .map(([key, category]) => {
+                        return `
+                            <div class="score-row" data-category="${key}">
+                                <div class="category-cell">
+                                    <div class="category-name">${category.name}</div>
+                                    <div class="category-desc">${category.description}</div>
+                                </div>
+                                ${gameState.selectedPlayers.map(player => {
+                                    const playerScores = gameState.scores[player] || {};
+                                    const isUsed = playerScores[key] !== undefined;
+                                    const score = playerScores[key] || '';
+                                    const isCurrentPlayer = player === gameState.selectedPlayers[gameState.currentPlayerIndex];
+                                    
+                                    return `
+                                        <div class="score-cell ${isCurrentPlayer ? 'current' : ''} ${isUsed ? 'used' : ''}" 
+                                             data-player="${player}" data-category="${key}">
+                                            ${isUsed ? 
+                                                `<span class="score-value">${score}</span>` : 
+                                                `<input type="number" class="score-input" min="0" max="${category.maxScore}" 
+                                                        placeholder="0-${category.maxScore}" data-player="${player}" data-category="${key}">`
+                                            }
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }).join('')}
+                
+                <!-- Grand Total -->
+                <div class="score-row grand-total-row">
+                    <div class="category-cell">
+                        <div class="category-name">Grand Total</div>
+                    </div>
+                    ${gameState.selectedPlayers.map(player => {
+                        const playerScores = gameState.scores[player] || {};
+                        const grandTotal = calculatePlayerTotal(playerScores);
+                        return `<div class="score-cell grand-total-cell">${grandTotal}</div>`;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
     `;
-    elements.scoreTable.appendChild(headerRow);
     
-    gameState.selectedPlayers.forEach(player => {
-        const scoreRow = document.createElement('div');
-        scoreRow.className = 'score-row';
-        if (player === gameState.selectedPlayers[gameState.currentPlayerIndex]) {
-            scoreRow.classList.add('current');
+    elements.scoreTable.innerHTML = tableHTML;
+    
+    // Add event listeners for score inputs
+    setupScoreInputListeners();
+}
+
+function setupScoreInputListeners() {
+    const scoreInputs = document.querySelectorAll('.score-input');
+    scoreInputs.forEach(input => {
+        input.addEventListener('change', handleScoreInput);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleScoreInput(e);
+            }
+        });
+    });
+}
+
+function handleScoreInput(event) {
+    const input = event.target;
+    const player = input.dataset.player;
+    const category = input.dataset.category;
+    const score = parseInt(input.value);
+    
+    if (score >= 0 && score <= YAMS_CATEGORIES[category].maxScore) {
+        // Save the score
+        if (!gameState.scores[player]) {
+            gameState.scores[player] = {};
+        }
+        gameState.scores[player][category] = score;
+        
+        // Replace input with score value
+        const scoreCell = input.closest('.score-cell');
+        scoreCell.innerHTML = `<span class="score-value">${score}</span>`;
+        scoreCell.classList.add('used');
+        
+        // Move to next player
+        gameState.currentPlayerIndex++;
+        
+        // Check if round is complete
+        if (gameState.currentPlayerIndex >= gameState.selectedPlayers.length) {
+            gameState.currentPlayerIndex = 0;
+            gameState.currentRound++;
         }
         
+        updateGameDisplay();
+        
+        // Check if game is complete (all categories filled for all players)
+        checkGameCompletion();
+    } else {
+        alert(`Please enter a valid score between 0 and ${YAMS_CATEGORIES[category].maxScore}`);
+        input.focus();
+    }
+}
+
+function checkGameCompletion() {
+    const allPlayersComplete = gameState.selectedPlayers.every(player => {
         const playerScores = gameState.scores[player] || {};
-        const upperScore = calculateUpperScore(playerScores);
-        const lowerScore = calculateLowerScore(playerScores);
-        const totalScore = upperScore + lowerScore;
-        
-        scoreRow.innerHTML = `
-            <span class="player-name">${player}</span>
-            <span class="score-value">${upperScore}</span>
-            <span class="score-value">${lowerScore}</span>
-            <span class="score-value total">${totalScore}</span>
-        `;
-        
-        elements.scoreTable.appendChild(scoreRow);
+        return Object.keys(YAMS_CATEGORIES).every(category => 
+            playerScores[category] !== undefined
+        );
     });
+    
+    if (allPlayersComplete) {
+        endGame();
+    }
 }
 
 function calculateUpperScore(playerScores) {
@@ -216,146 +350,7 @@ function updateGameDisplay() {
     renderScoreTable();
 }
 
-function showScoreModal() {
-    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
-    elements.modalPlayerName.textContent = currentPlayer;
-    
-    // Update modal content to show categories
-    updateScoreModalContent(currentPlayer);
-    
-    elements.scoreModal.classList.add('active');
-}
-
-function updateScoreModalContent(player) {
-    const modalContent = document.querySelector('.modal-content');
-    const playerScores = gameState.scores[player] || {};
-    
-    let categoriesHTML = '';
-    Object.entries(YAMS_CATEGORIES).forEach(([key, category]) => {
-        const isUsed = playerScores[key] !== undefined;
-        const score = playerScores[key] || 0;
-        
-        categoriesHTML += `
-            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
-                <div class="category-info">
-                    <span class="category-name">${category.name}</span>
-                    <span class="category-desc">${category.description}</span>
-                </div>
-                <div class="category-score">
-                    ${isUsed ? `<span class="used-score">${score}</span>` : `
-                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
-                    `}
-                </div>
-            </div>
-        `;
-    });
-    
-    // Update modal content
-    modalContent.innerHTML = `
-        <h3>📊 Score for ${player}</h3>
-        <div class="categories-container">
-            <div class="section-title">Upper Section</div>
-            <div class="categories-grid upper-section">
-                ${Object.entries(YAMS_CATEGORIES)
-                    .filter(([, cat]) => cat.section === 'upper')
-                    .map(([key, category]) => {
-                        const isUsed = playerScores[key] !== undefined;
-                        const score = playerScores[key] || 0;
-                        return `
-                            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
-                                <div class="category-info">
-                                    <span class="category-name">${category.name}</span>
-                                    <span class="category-desc">${category.description}</span>
-                                </div>
-                                <div class="category-score">
-                                    ${isUsed ? `<span class="used-score">${score}</span>` : `
-                                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-            </div>
-            
-            <div class="section-title">Lower Section</div>
-            <div class="categories-grid lower-section">
-                ${Object.entries(YAMS_CATEGORIES)
-                    .filter(([, cat]) => cat.section === 'lower')
-                    .map(([key, category]) => {
-                        const isUsed = playerScores[key] !== undefined;
-                        const score = playerScores[key] || 0;
-                        return `
-                            <div class="category-item ${isUsed ? 'used' : ''}" data-category="${key}">
-                                <div class="category-info">
-                                    <span class="category-name">${category.name}</span>
-                                    <span class="category-desc">${category.description}</span>
-                                </div>
-                                <div class="category-score">
-                                    ${isUsed ? `<span class="used-score">${score}</span>` : `
-                                        <input type="number" class="category-input" min="0" max="${category.maxScore}" placeholder="0-${category.maxScore}">
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button id="cancelScoreBtn" class="btn btn-secondary">❌ Cancel</button>
-            <button id="saveScoreBtn" class="btn btn-primary">💾 Save</button>
-        </div>
-    `;
-    
-    // Re-attach event listeners
-    setupModalEventListeners();
-}
-
-function setupModalEventListeners() {
-    // Re-attach event listeners for new modal content
-    document.getElementById('saveScoreBtn').addEventListener('click', saveCategoryScores);
-    document.getElementById('cancelScoreBtn').addEventListener('click', hideScoreModal);
-}
-
-function saveCategoryScores() {
-    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
-    const playerScores = gameState.scores[currentPlayer] || {};
-    
-    // Get all category inputs
-    const categoryInputs = document.querySelectorAll('.category-input');
-    let hasNewScore = false;
-    
-    categoryInputs.forEach(input => {
-        const category = input.closest('.category-item').dataset.category;
-        const score = parseInt(input.value);
-        
-        if (score >= 0 && score <= YAMS_CATEGORIES[category].maxScore) {
-            playerScores[category] = score;
-            hasNewScore = true;
-        }
-    });
-    
-    if (hasNewScore) {
-        gameState.scores[currentPlayer] = playerScores;
-        
-        // Move to next player
-        gameState.currentPlayerIndex++;
-        
-        // Check if round is complete
-        if (gameState.currentPlayerIndex >= gameState.selectedPlayers.length) {
-            gameState.currentPlayerIndex = 0;
-            gameState.currentRound++;
-        }
-        
-        updateGameDisplay();
-        hideScoreModal();
-        
-        // Check if game is complete
-        if (gameState.currentRound > gameState.maxRounds) {
-            endGame();
-        }
-    }
-}
-
+// Remove modal-based scoring - now using inline scoring
 function hideScoreModal() {
     elements.scoreModal.classList.remove('active');
 }
@@ -607,7 +602,6 @@ function setupEventListeners() {
     elements.startGameBtn.addEventListener('click', startGame);
     
     // Game actions
-    elements.addScoreBtn.addEventListener('click', showScoreModal);
     elements.endGameBtn.addEventListener('click', endGame);
     
     // Modal backdrop click
