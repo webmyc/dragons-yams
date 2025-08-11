@@ -722,11 +722,19 @@ async function endGame() {
     
     alert(`🎉 Game Over! 🎉\n\n🏆 Winner: ${winner} with ${winnerScore} points!\n⏱️ Duration: ${durationFormatted}\n📍 Location: ${gameState.gameLocation}\n\nThanks for playing! 🎲`);
     
-    // Reset and go back to setup
+    // Reset game state
+    resetGameState();
+}
+
+function resetGameState() {
     gameState.selectedPlayers = [];
     gameState.scores = {};
+    gameState.currentPlayerIndex = 0;
+    gameState.currentRound = 1;
     gameState.gameStartTime = null;
     gameState.gameLocation = '';
+    gameState.currentScreen = 'gameSetup';
+    
     showScreen('gameSetup');
     renderPlayerList();
     updateStartButton();
@@ -735,14 +743,41 @@ async function endGame() {
 // Event Listeners
 function setupEventListeners() {
     // Navigation
-    elements.navBtns.newGame.addEventListener('click', () => showScreen('gameSetup'));
-    elements.navBtns.history.addEventListener('click', () => {
-        showScreen('historyScreen');
-        renderHistory();
+    elements.navBtns.newGame.addEventListener('click', () => {
+        if (gameState.currentScreen === 'gameScreen' && gameState.selectedPlayers.length > 0) {
+            if (confirm('⚠️ You have a game in progress! Are you sure you want to start a new game? This will end the current game.')) {
+                endGame();
+                showScreen('gameSetup');
+            }
+        } else {
+            showScreen('gameSetup');
+        }
     });
+    
+    elements.navBtns.history.addEventListener('click', () => {
+        if (gameState.currentScreen === 'gameScreen' && gameState.selectedPlayers.length > 0) {
+            if (confirm('⚠️ You have a game in progress! Are you sure you want to view history? This will end the current game.')) {
+                endGame();
+                showScreen('historyScreen');
+                renderHistory();
+            }
+        } else {
+            showScreen('historyScreen');
+            renderHistory();
+        }
+    });
+    
     elements.navBtns.leaderboard.addEventListener('click', () => {
-        showScreen('leaderboardScreen');
-        renderLeaderboard();
+        if (gameState.currentScreen === 'gameScreen' && gameState.selectedPlayers.length > 0) {
+            if (confirm('⚠️ You have a game in progress! Are you sure you want to view leaderboard? This will end the current game.')) {
+                endGame();
+                showScreen('leaderboardScreen');
+                renderLeaderboard();
+            }
+        } else {
+            showScreen('leaderboardScreen');
+            renderLeaderboard();
+        }
     });
     
     // Back buttons
