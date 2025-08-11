@@ -84,12 +84,28 @@ function initApp() {
 }
 
 // Local Storage Functions - Now with Firebase backup
-function saveToStorage() {
+async function saveToStorage() {
     // Save to local storage for offline access
     localStorage.setItem('yamsGameState', JSON.stringify({
         allPlayers: gameState.allPlayers,
         leaderboard: gameState.leaderboard
     }));
+    
+    // Also save to Firebase for cross-device sync
+    try {
+        if (window.db) {
+            // Save leaderboard to Firebase
+            await window.addDoc(window.collection(window.db, "leaderboard"), {
+                allPlayers: gameState.allPlayers,
+                leaderboard: gameState.leaderboard,
+                timestamp: new Date().toISOString()
+            });
+            console.log("Leaderboard saved to Firebase");
+        }
+    } catch (error) {
+        console.error("Error saving leaderboard to Firebase:", error);
+        // Continue with local storage only if Firebase fails
+    }
 }
 
 function loadFromStorage() {
@@ -796,7 +812,7 @@ async function endGame() {
         gameState.leaderboard[player].gamesPlayed += 1;
     });
     
-    saveToStorage();
+    await saveToStorage();
     
     // Show winner
     const winner = Object.entries(gameState.scores).reduce((a, b) => {
@@ -873,13 +889,13 @@ function setupEventListeners() {
     elements.backBtns.leaderboard.addEventListener('click', () => showScreen('gameSetup'));
     
     // Game setup
-    elements.addPlayerBtn.addEventListener('click', () => {
+    elements.addPlayerBtn.addEventListener('click', async () => {
         const name = elements.newPlayerName.value.trim();
         if (name && !gameState.allPlayers.includes(name)) {
             gameState.allPlayers.push(name);
             elements.newPlayerName.value = '';
             renderPlayerList();
-            saveToStorage();
+            await saveToStorage();
         }
     });
     
