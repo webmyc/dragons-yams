@@ -261,34 +261,117 @@ function renderScoreTable() {
 }
 
 function setupScoreInputListeners() {
-    const scoreInputs = document.querySelectorAll('.score-input');
-    scoreInputs.forEach(input => {
-        input.addEventListener('change', handleScoreInput);
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleScoreInput(e);
-            }
-        });
+    // Add click listeners to all score cells
+    const scoreCells = document.querySelectorAll('.score-cell');
+    scoreCells.forEach(cell => {
+        cell.addEventListener('click', handleCellClick);
     });
+    
+    // Add global click listener to handle clicking outside
+    document.addEventListener('click', handleOutsideClick);
 }
 
-function handleScoreInput(event) {
+function handleCellClick(event) {
+    const cell = event.currentTarget;
+    const player = cell.dataset.player;
+    const category = cell.dataset.category;
+    
+    // Don't allow editing if already used
+    if (cell.classList.contains('used')) {
+        return;
+    }
+    
+    // Don't allow editing if not current player's turn
+    const currentPlayer = gameState.selectedPlayers[gameState.currentPlayerIndex];
+    if (player !== currentPlayer) {
+        return;
+    }
+    
+    // Create input field
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'score-input';
+    input.min = '0';
+    input.max = YAMS_CATEGORIES[category].maxScore;
+    input.placeholder = `0-${YAMS_CATEGORIES[category].maxScore}`;
+    input.dataset.player = player;
+    input.dataset.category = category;
+    
+    // Clear cell and add input
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    cell.classList.add('editing');
+    
+    // Focus and select input
+    input.focus();
+    input.select();
+    
+    // Add event listeners to input
+    input.addEventListener('blur', handleInputBlur);
+    input.addEventListener('keypress', handleInputKeypress);
+    input.addEventListener('input', handleInputChange);
+}
+
+function handleOutsideClick(event) {
+    const editingCell = document.querySelector('.score-cell.editing');
+    if (editingCell && !editingCell.contains(event.target)) {
+        const input = editingCell.querySelector('.score-input');
+        if (input) {
+            handleInputSubmit(input);
+        }
+    }
+}
+
+function handleInputBlur(event) {
     const input = event.target;
+    setTimeout(() => {
+        if (document.activeElement !== input) {
+            handleInputSubmit(input);
+        }
+    }, 100);
+}
+
+function handleInputKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        handleInputSubmit(event.target);
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelInput(event.target);
+    }
+}
+
+function handleInputChange(event) {
+    const input = event.target;
+    const value = parseInt(input.value);
+    const max = parseInt(input.max);
+    
+    // Validate input
+    if (value > max) {
+        input.value = max;
+    } else if (value < 0) {
+        input.value = 0;
+    }
+}
+
+function handleInputSubmit(input) {
     const player = input.dataset.player;
     const category = input.dataset.category;
-    const score = parseInt(input.value);
+    const score = parseInt(input.value) || 0;
+    const maxScore = YAMS_CATEGORIES[category].maxScore;
     
-    if (score >= 0 && score <= YAMS_CATEGORIES[category].maxScore) {
+    if (score >= 0 && score <= maxScore) {
         // Save the score
         if (!gameState.scores[player]) {
             gameState.scores[player] = {};
         }
         gameState.scores[player][category] = score;
         
-        // Replace input with score value
-        const scoreCell = input.closest('.score-cell');
-        scoreCell.innerHTML = `<span class="score-value">${score}</span>`;
-        scoreCell.classList.add('used');
+        // Update cell display
+        const cell = input.closest('.score-cell');
+        cell.innerHTML = `<span class="score-value">${score}</span>`;
+        cell.classList.remove('editing');
+        cell.classList.add('used');
         
         // Move to next player
         gameState.currentPlayerIndex++;
@@ -301,12 +384,22 @@ function handleScoreInput(event) {
         
         updateGameDisplay();
         
-        // Check if game is complete (all categories filled for all players)
+        // Check if game is complete
         checkGameCompletion();
+        
+        // Add haptic feedback
+        addHapticFeedback();
     } else {
-        alert(`Please enter a valid score between 0 and ${YAMS_CATEGORIES[category].maxScore}`);
-        input.focus();
+        // Invalid score - revert to empty cell
+        cancelInput(input);
+        alert(`Please enter a valid score between 0 and ${maxScore}`);
     }
+}
+
+function cancelInput(input) {
+    const cell = input.closest('.score-cell');
+    cell.innerHTML = '';
+    cell.classList.remove('editing');
 }
 
 function checkGameCompletion() {
