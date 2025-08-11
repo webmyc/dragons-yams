@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>🎲 Yams Scorekeeper</title>
     
     <!-- Open Graph Meta Tags for Social Sharing -->
@@ -49,10 +49,11 @@
     
     <!-- PWA Manifest -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Yams Scorekeeper">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#2d5a27">
+    <meta name="msapplication-TileColor" content="#2d5a27">
 </head>
 <body>
     <div class="app-container">
@@ -106,8 +107,7 @@
                         <div class="paper-decoration"></div>
                     </div>
                     <div class="current-player">
-                        <span>🎯 Current: </span>
-                        <span id="currentPlayerName" class="player-name"></span>
+                        <div class="current-player-name" id="currentPlayerName"></div>
                     </div>
                 </div>
 
