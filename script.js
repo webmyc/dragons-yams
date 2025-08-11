@@ -374,6 +374,32 @@ function renderScoreSummary() {
     });
 }
 
+function handleCategorySelection() {
+    const selectedCategory = elements.categorySelect.value;
+    
+    if (selectedCategory) {
+        const categoryData = YAMS_CATEGORIES[selectedCategory];
+        
+        // Check if this is a fixed-point category
+        const fixedPointCategories = ['fullHouse', 'smallStraight', 'largeStraight', 'yams'];
+        
+        if (fixedPointCategories.includes(selectedCategory)) {
+            // Prefill with the fixed points
+            elements.pointsInput.value = categoryData.maxScore;
+            elements.pointsInput.focus();
+        } else {
+            // Clear the input for variable-point categories
+            elements.pointsInput.value = '';
+        }
+    } else {
+        // No category selected, clear the input
+        elements.pointsInput.value = '';
+    }
+    
+    // Update submit button state
+    updateSubmitButton();
+}
+
 function updateSubmitButton() {
     const categorySelected = elements.categorySelect.value !== '';
     const pointsEntered = elements.pointsInput.value !== '';
@@ -873,7 +899,7 @@ function setupEventListeners() {
     });
     
     // Score input interface
-    elements.categorySelect.addEventListener('change', updateSubmitButton);
+    elements.categorySelect.addEventListener('change', handleCategorySelection);
     elements.pointsInput.addEventListener('input', updateSubmitButton);
     elements.submitScoreBtn.addEventListener('click', submitScore);
     

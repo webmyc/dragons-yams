@@ -277,16 +277,18 @@ body {
     transform: scale(1.02);
     position: relative;
     overflow: hidden;
+    padding-left: 40px; /* Make space for the target emoji */
 }
 
 .player-score-row.current-player::before {
     content: '🎯';
     position: absolute;
-    left: 8px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 1.2rem;
     animation: pulse 1.5s infinite;
+    z-index: 1;
 }
 
 @keyframes pulse {
